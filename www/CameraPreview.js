@@ -34,6 +34,10 @@ CameraPreview.startCamera = function(options, onSuccess, onError) {
     exec(onSuccess, onError, PLUGIN_NAME, "startCamera", [options.x, options.y, options.width, options.height, options.camera, options.tapPhoto, options.previewDrag, options.toBack, options.alpha, options.tapFocus]);
 };
 
+CameraPreview.getCameraInfoRotation = function(cameraName, onSuccess, onError) {
+    exec(onSuccess, onError, PLUGIN_NAME, "getCameraInfoRotation", [cameraName]);
+}
+
 CameraPreview.stopCamera = function(onSuccess, onError) {
     exec(onSuccess, onError, PLUGIN_NAME, "stopCamera", []);
 };

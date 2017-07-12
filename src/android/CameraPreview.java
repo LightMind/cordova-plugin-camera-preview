@@ -54,6 +54,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   private static final String GET_EXPOSURE_COMPENSATION_RANGE_ACTION = "getExposureCompensationRange";
   private static final String GET_WHITE_BALANCE_MODE_ACTION = "getWhiteBalanceMode";
   private static final String SET_WHITE_BALANCE_MODE_ACTION = "setWhiteBalanceMode";
+  private static final String GET_CAMERA_INFO_ROTATION = "getCameraInfoRotation";
 
   private static final int CAM_REQ_CODE = 0;
 
@@ -142,6 +143,8 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
       return getWhiteBalanceMode(callbackContext);
     } else if (SET_WHITE_BALANCE_MODE_ACTION.equals(action)) {
       return setWhiteBalanceMode(args.getString(0),callbackContext);
+    } else if (GET_CAMERA_INFO_ROTATION.equals(action)) {
+      return getCameraInfoRotation(args.getString(0), callbackContext);
     }
     return false;
   }
@@ -867,6 +870,15 @@ private boolean getSupportedFocusModes(CallbackContext callbackContext) {
     fragment.switchCamera();
 
     callbackContext.success();
+    return true;
+  }
+
+  private boolean getCameraInfoRotation(String whichCamera, CallbackContext callbackContext) {
+    int camId = whichCamera.equals("front") ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
+
+    android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+    android.hardware.Camera.getCameraInfo(camId, info);
+    callbackContext.success(info.orientation);
     return true;
   }
 }

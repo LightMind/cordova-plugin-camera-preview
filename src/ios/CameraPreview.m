@@ -77,6 +77,11 @@
   }
 }
 
+- (void) getCameraInfoRotation:(CDVInvokedUrlCommand*)command {
+    CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:0];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void) stopCamera:(CDVInvokedUrlCommand*)command {
   NSLog(@"stopCamera");
   CDVPluginResult *pluginResult;
