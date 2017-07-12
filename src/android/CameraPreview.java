@@ -9,6 +9,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 
 import org.apache.cordova.CallbackContext;
@@ -63,9 +64,12 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   private CameraActivity fragment;
   private CallbackContext takePictureCallbackContext;
   private CallbackContext setFocusCallbackContext;
+  private CallbackContext startCameraCallbackContext;
 
   private CallbackContext execCallback;
   private JSONArray execArgs;
+
+  private ViewParent webViewParent;
 
   private int containerViewId = 1;
   public CameraPreview(){
@@ -235,7 +239,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 
     fragment.setRect(computedX, computedY, computedWidth, computedHeight);
 
-    final CallbackContext cb = callbackContext;
+    startCameraCallbackContext = callbackContext;
 
     cordova.getActivity().runOnUiThread(new Runnable() {
       @Override
@@ -254,6 +258,9 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
         //display camera bellow the webview
         if(toBack){
           webView.getView().setBackgroundColor(0x00000000);
+          webViewParent = webView.getView().getParent();
+          ((ViewGroup)webViewParent).removeView(webView.getView());
+          ((ViewGroup)containerView.getParent()).addView(webView.getView(), 0);
           ((ViewGroup)webView.getView()).bringToFront();
         }else{
           //set camera back to front
@@ -266,12 +273,18 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(containerView.getId(), fragment);
         fragmentTransaction.commit();
-
-        cb.success("Camera started");
       }
     });
 
     return true;
+  }
+
+  public void onCameraStarted() {
+    Log.d(TAG, "Camera started");
+
+    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "Camera started");
+    pluginResult.setKeepCallback(true);
+    startCameraCallbackContext.sendPluginResult(pluginResult);
   }
 
   private boolean takePicture(int width, int height, int quality, CallbackContext callbackContext) {
@@ -751,6 +764,19 @@ private boolean getSupportedFocusModes(CallbackContext callbackContext) {
   }
 
   private boolean stopCamera(CallbackContext callbackContext) {
+
+    if(webViewParent != null) {
+      cordova.getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          ((ViewGroup)webView.getView().getParent()).removeView(webView.getView());
+          ((ViewGroup)webViewParent).addView(webView.getView(), 0);
+          ((ViewGroup)webView.getView()).bringToFront();
+          webViewParent = null;
+        }
+      });
+    }
+
     if(this.hasView(callbackContext) == false){
       return true;
     }
