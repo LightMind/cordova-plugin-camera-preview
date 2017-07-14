@@ -82,6 +82,11 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void) setCameraParameterResolution:(CDVInvokedUrlCommand*)command {
+  CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"iOS ignores this setting deliberately, just use takePicture({width,height})"];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void) stopCamera:(CDVInvokedUrlCommand*)command {
   NSLog(@"stopCamera");
   CDVPluginResult *pluginResult;

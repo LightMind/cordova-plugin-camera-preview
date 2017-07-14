@@ -22,7 +22,7 @@ CameraPreview.startCamera = function(options, onSuccess, onError) {
     }
 
     if (typeof (options.tapFocus) == 'undefined') {
-      options.tapFocus = false;
+        options.tapFocus = false;
     }
 
     options.previewDrag = options.previewDrag || false;
@@ -36,7 +36,10 @@ CameraPreview.startCamera = function(options, onSuccess, onError) {
 
 CameraPreview.getCameraInfoRotation = function(cameraName, onSuccess, onError) {
     exec(onSuccess, onError, PLUGIN_NAME, "getCameraInfoRotation", [cameraName]);
+}
 
+CameraPreview.setCameraParameterResolution = function(width, height, onSuccess, onError) {
+    exec(onSuccess, onError, PLUGIN_NAME, "setCameraParameterResolution", [width, height]);
 }
 
 CameraPreview.stopCamera = function(onSuccess, onError) {

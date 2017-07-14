@@ -36,6 +36,7 @@
 - (void) getWhiteBalanceMode:(CDVInvokedUrlCommand*)command;
 - (void) setWhiteBalanceMode:(CDVInvokedUrlCommand*)command;
 - (void) getCameraInfoRotation:(CDVInvokedUrlCommand*)command;
+- (void) setCameraParameterResolution:(CDVInvokedUrlCommand*)command;
 
 - (void) invokeTakePicture:(CGFloat) width withHeight:(CGFloat) height withQuality:(CGFloat) quality;
 - (void) invokeTakePicture;

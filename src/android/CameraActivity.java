@@ -274,7 +274,7 @@ public class CameraActivity extends Fragment {
             camViewLayout.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
             frameCamContainerLayout.setLayoutParams(camViewLayout);
           } catch(Exception e) {
-              Log.d(TAG, e.getMessage());
+            Log.d(TAG, e.getMessage());
           }
         }
       });
@@ -408,7 +408,7 @@ public class CameraActivity extends Fragment {
     }
   };
 
-  private Camera.Size getOptimalPictureSize(final int width, final int height, final Camera.Size previewSize, final List<Camera.Size> supportedSizes){
+  public Camera.Size getOptimalPictureSize(final int width, final int height, final Camera.Size previewSize, final List<Camera.Size> supportedSizes){
     /*
       get the supportedPictureSize that:
       - matches exactly width and height
