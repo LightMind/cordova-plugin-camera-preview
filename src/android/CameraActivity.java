@@ -138,34 +138,48 @@ public class CameraActivity extends Fragment {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
               FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) frameContainerLayout.getLayoutParams();
-
+              final int viewWidth = (int) v.getWidth();
+              final int viewHeight = (int) v.getHeight();
 
               boolean isSingleTapTouch = gestureDetector.onTouchEvent(event);
               if (event.getAction() != MotionEvent.ACTION_MOVE && isSingleTapTouch) {
                 if (tapToTakePicture && tapToFocus) {
-                  setFocusArea((int)event.getX(0), (int)event.getY(0), new Camera.AutoFocusCallback() {
-                    public void onAutoFocus(boolean success, Camera camera) {
-                      if (success) {
-                        takePicture(0, 0, 85);
-                      } else {
-                        Log.d(TAG, "onTouch:" + " setFocusArea() did not suceed");
+                  Log.d(TAG, "Touch at " + ((int) event.getX(0)) + ", " + ((int)event.getY(0)));
+                  setFocusArea(
+                    (int)event.getX(0),
+                    (int)event.getY(0),
+                    new Camera.AutoFocusCallback() {
+                      public void onAutoFocus(boolean success, Camera camera) {
+                        if (success) {
+                          takePicture(0, 0, 85);
+                        } else {
+                          Log.d(TAG, "onTouch:" + " setFocusArea() did not suceed");
+                        }
                       }
-                    }
-                  });
+                    },
+                    viewWidth,
+                    viewHeight
+                  );
 
                 } else if(tapToTakePicture){
                   takePicture(0, 0, 85);
 
                 } else if(tapToFocus){
-                  setFocusArea((int)event.getX(0), (int)event.getY(0), new Camera.AutoFocusCallback() {
-                    public void onAutoFocus(boolean success, Camera camera) {
-                      if (success) {
-                        // A callback to JS might make sense here.
-                      } else {
-                        Log.d(TAG, "onTouch:" + " setFocusArea() did not suceed");
+                  setFocusArea(
+                    (int)event.getX(0),
+                    (int)event.getY(0),
+                    new Camera.AutoFocusCallback() {
+                      public void onAutoFocus(boolean success, Camera camera) {
+                        if (success) {
+                          // A callback to JS might make sense here.
+                        } else {
+                          Log.d(TAG, "onTouch:" + " setFocusArea() did not suceed");
+                        }
                       }
-                    }
-                  });
+                    },
+                    viewWidth,
+                    viewHeight
+                  );
                 }
                 return true;
               } else {
@@ -526,19 +540,33 @@ public class CameraActivity extends Fragment {
     }
   }
 
-  public void setFocusArea(final int pointX, final int pointY, final Camera.AutoFocusCallback callback) {
+  public void setFocusArea(
+    final int pointX,
+    final int pointY,
+    final Camera.AutoFocusCallback callback
+  ) {
+    this.setFocusArea(pointX, pointY, callback, width, height);
+  }
+
+  public void setFocusArea(
+    final int pointX,
+    final int pointY,
+    final Camera.AutoFocusCallback callback,
+    final int viewWidth,
+    final int viewHeight
+  ) {
     if (mCamera != null) {
 
       mCamera.cancelAutoFocus();
 
       Camera.Parameters parameters = mCamera.getParameters();
 
-      Rect focusRect = calculateTapArea(pointX, pointY, 1f);
+      Rect focusRect = calculateTapArea(pointX, pointY, viewWidth, viewHeight);
       parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
       parameters.setFocusAreas(Arrays.asList(new Camera.Area(focusRect, 1000)));
 
       if (parameters.getMaxNumMeteringAreas() > 0) {
-        Rect meteringRect = calculateTapArea(pointX, pointY, 1.5f);
+        Rect meteringRect = calculateTapArea(pointX, pointY, viewWidth, viewHeight);
         parameters.setMeteringAreas(Arrays.asList(new Camera.Area(meteringRect, 1000)));
       }
 
@@ -552,12 +580,17 @@ public class CameraActivity extends Fragment {
     }
   }
 
-  private Rect calculateTapArea(float x, float y, float coefficient) {
+  private Rect calculateTapArea(float x, float y, float viewWidth, float viewHeight) {
+    float centerX = (x / viewWidth) * 2000 - 1000; // go from x in [0, viewWidth] to [-1000, 1000]
+    float centerY = (y / viewHeight) * 2000 - 1000;
+
+    // make a rectangle around the centerpoint, but make sure that coordinates
+    // do not leave [-1000, 1000]
     return new Rect(
-      Math.round((x - 100) * 2000 / width  - 1000),
-      Math.round((y - 100) * 2000 / height - 1000),
-      Math.round((x + 100) * 2000 / width  - 1000),
-      Math.round((y + 100) * 2000 / height - 1000)
+      Math.round(Math.max(-1000, centerX - 50)),
+      Math.round(Math.max(-1000, centerY - 50)),
+      Math.round(Math.min(1000, centerX + 50)),
+      Math.round(Math.min(1000, centerY + 50))
     );
   }
 }
