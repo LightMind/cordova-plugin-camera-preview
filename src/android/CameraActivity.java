@@ -14,12 +14,10 @@ import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
-import android.hardware.Camera;
-import android.hardware.Camera.PictureCallback;
-import android.hardware.Camera.ShutterCallback;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.DisplayMetrics;
+import android.view.WindowManager;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -33,6 +31,10 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.ShutterCallback;
+import android.hardware.Camera.CameraInfo;
 
 import org.apache.cordova.LOG;
 
@@ -559,14 +561,32 @@ public class CameraActivity extends Fragment {
 
       mCamera.cancelAutoFocus();
 
+      int screenRotation = getActivity().getApplicationContext().getSystemService(WindowManager.class).getDefaultDisplay().getRotation();
+      int screenRotationDegrees = 0;
+
+      switch(screenRotation) {
+        case Surface.ROTATION_0: screenRotationDegrees = 0; break;
+        case Surface.ROTATION_90: screenRotationDegrees = 90; break;
+        case Surface.ROTATION_180: screenRotationDegrees = 180; break;
+        case Surface.ROTATION_270: screenRotationDegrees = 270; break;
+      }
+
+      Camera.CameraInfo info = new Camera.CameraInfo();
+      Camera.getCameraInfo(defaultCameraId, info);
+      int cameraRotation = info.orientation;
+
+      Log.d(TAG, "CameraRotation: " + cameraRotation + ", ScreenRotation: " + screenRotationDegrees);
+
       Camera.Parameters parameters = mCamera.getParameters();
 
-      Rect focusRect = calculateTapArea(pointX, pointY, viewWidth, viewHeight);
+      int rotateCoordinatesClockwise = ((screenRotationDegrees - cameraRotation) + 360) % 360;
+
+      Rect focusRect = calculateTapArea(pointX, pointY, viewWidth, viewHeight, rotateCoordinatesClockwise);
       parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
       parameters.setFocusAreas(Arrays.asList(new Camera.Area(focusRect, 1000)));
 
       if (parameters.getMaxNumMeteringAreas() > 0) {
-        Rect meteringRect = calculateTapArea(pointX, pointY, viewWidth, viewHeight);
+        Rect meteringRect = calculateTapArea(pointX, pointY, viewWidth, viewHeight, rotateCoordinatesClockwise);
         parameters.setMeteringAreas(Arrays.asList(new Camera.Area(meteringRect, 1000)));
       }
 
@@ -580,17 +600,49 @@ public class CameraActivity extends Fragment {
     }
   }
 
-  private Rect calculateTapArea(float x, float y, float viewWidth, float viewHeight) {
-    float centerX = (x / viewWidth) * 2000 - 1000; // go from x in [0, viewWidth] to [-1000, 1000]
-    float centerY = (y / viewHeight) * 2000 - 1000;
+  private Rect calculateTapArea(float x, float y, float viewWidth, float viewHeight, int rotation) {
+    float scaledX = (x / viewWidth) * 2000 - 1000; // go from x in [0, viewWidth] to [-1000, 1000]
+    float scaledY = (y / viewHeight) * 2000 - 1000;
+
+    float rotatedX = scaledX;
+    float rotatedY = scaledY;
+
+    if(rotation < 0){
+      rotation = rotation + 360;
+    }
+    if(rotation == 360){
+      rotation = 0;
+    }
+
+    // we need to rotate coordinates clockwise, to make up for the difference between
+    // screen coordinates and coordinates of the camera.
+    // for example, if the screen has a orientation of 0 (upward) , but the camera has an orientation of
+    // 270 (to the left), we need to rotate the coordinates 90 degrees clockwise, around (0,0),
+    // so that they match up with what the user sees on the screen.
+
+    // imaging drawing a point in the camera space, then rotating it 90 degrees clockwise, to match
+    // up when the screen space.
+
+    if(rotation == 270){
+      rotatedX = scaledY;
+      rotatedY = - scaledX;
+    }
+    if(rotation == 180){
+      rotatedX = - scaledX;
+      rotatedY = - scaledY;
+    }
+    if(rotation == 90){
+      rotatedX = - scaledY;
+      rotatedY = scaledX;
+    }
 
     // make a rectangle around the centerpoint, but make sure that coordinates
     // do not leave [-1000, 1000]
     return new Rect(
-      Math.round(Math.max(-1000, centerX - 50)),
-      Math.round(Math.max(-1000, centerY - 50)),
-      Math.round(Math.min(1000, centerX + 50)),
-      Math.round(Math.min(1000, centerY + 50))
+      Math.round(Math.max(-1000, rotatedX - 50)),
+      Math.round(Math.max(-1000, rotatedY - 50)),
+      Math.round(Math.min(1000, rotatedX + 50)),
+      Math.round(Math.min(1000, rotatedY + 50))
     );
   }
 }
