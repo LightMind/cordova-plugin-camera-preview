@@ -36,6 +36,7 @@
 
     // Create the session manager
     self.sessionManager = [[CameraSessionManager alloc] init];
+    self.sessionManager.frame = CGRectMake(x, y, width, height);
 
     // render controller setup
     self.cameraRenderController = [[CameraRenderController alloc] init];

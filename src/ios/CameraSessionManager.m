@@ -1,4 +1,5 @@
 #include "CameraSessionManager.h"
+#include "CameraRenderController.h"
 
 @implementation CameraSessionManager
 
@@ -669,18 +670,25 @@
 
   [self.device lockForConfiguration:nil];
 
-  CGRect screenRect = [[UIScreen mainScreen] bounds];
-  CGFloat screenWidth = screenRect.size.width;
-  CGFloat screenHeight = screenRect.size.height;
-  CGFloat focus_x = xPoint/screenWidth;
-  CGFloat focus_y = yPoint/screenHeight;
+  //CGRect screenRect = [[UIScreen mainScreen] bounds];
+  //CGFloat screenWidth = screenRect.size.width;
+  //CGFloat screenHeight = screenRect.size.height;
+  CGFloat focus_x = xPoint/self.frame.size.width;
+  CGFloat focus_y = yPoint/self.frame.size.height;
+
+
+  // Rotate 90 degrees and transform such that coordinates are in [0, 1]
+  // This code assumes that the screen is always in portrait mode,
+  // and the camera is always mounted in the same direction on every iOS device.
+  CGFloat tx = focus_y;
+  CGFloat ty = 1 - focus_x;
 
   if ([self.device isFocusModeSupported:AVCaptureFocusModeAutoFocus]){
-    [self.device setFocusPointOfInterest:CGPointMake(focus_x,focus_y)];
+    [self.device setFocusPointOfInterest:CGPointMake(tx,ty)];
     [self.device setFocusMode:AVCaptureFocusModeAutoFocus];
   }
   if ([self.device isExposureModeSupported:AVCaptureExposureModeAutoExpose]){
-    [self.device setExposurePointOfInterest:CGPointMake(focus_x,focus_y)];
+    [self.device setExposurePointOfInterest:CGPointMake(tx,ty)];
     [self.device setExposureMode:AVCaptureExposureModeAutoExpose];
   }
 

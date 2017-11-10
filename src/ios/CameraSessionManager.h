@@ -50,5 +50,6 @@
 @property (nonatomic, assign) id delegate;
 @property (nonatomic) NSString *currentWhiteBalanceMode;
 @property (nonatomic) NSDictionary *colorTemperatures;
+@property (nonatomic) CGRect frame;
 
 @end
