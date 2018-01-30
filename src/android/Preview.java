@@ -124,14 +124,17 @@ class Preview extends RelativeLayout implements TextureView.SurfaceTextureListen
       mCamera.setParameters(parameters);
     }
   }
-  private void setCameraDisplayOrientation() {
+
+  public int getCorrectedOrientation() {
     Camera.CameraInfo info = new Camera.CameraInfo();
     int rotation = ((Activity) getContext()).getWindowManager().getDefaultDisplay().getRotation();
     int degrees = 0;
-    DisplayMetrics dm = new DisplayMetrics();
+    int result;
+
+    //DisplayMetrics dm = new DisplayMetrics();
 
     Camera.getCameraInfo(cameraId, info);
-    ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(dm);
+    //((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(dm);
 
     switch (rotation) {
       case Surface.ROTATION_0:
@@ -149,15 +152,20 @@ class Preview extends RelativeLayout implements TextureView.SurfaceTextureListen
     }
 
     if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-      displayOrientation = (info.orientation + degrees) % 360;
-      displayOrientation = (360 - displayOrientation) % 360;
+      result = (info.orientation + degrees) % 360;
+      result = (360 - result) % 360;
     } else {
-      displayOrientation = (info.orientation - degrees + 360) % 360;
+      result = (info.orientation - degrees + 360) % 360;
     }
 
     Log.d(TAG, "screen is rotated " + degrees + "deg from natural");
     Log.d(TAG, (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT ? "front" : "back") + " camera is oriented -" + info.orientation + "deg from natural");
-    Log.d(TAG, "need to rotate preview " + displayOrientation + "deg");
+    Log.d(TAG, "need to rotate preview " + result + "deg");
+    return result;
+  }
+
+  private void setCameraDisplayOrientation() {
+    displayOrientation = getCorrectedOrientation();
     mCamera.setDisplayOrientation(displayOrientation);
   }
 

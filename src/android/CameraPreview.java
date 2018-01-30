@@ -38,6 +38,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   private static final String PREVIEW_SIZE_ACTION = "setPreviewSize";
   private static final String SWITCH_CAMERA_ACTION = "switchCamera";
   private static final String TAKE_PICTURE_ACTION = "takePicture";
+  private static final String TAKE_PICTURE_TO_FILE_ACTION = "takePictureToFile";
   private static final String SHOW_CAMERA_ACTION = "showCamera";
   private static final String HIDE_CAMERA_ACTION = "hideCamera";
   private static final String TAP_TO_FOCUS = "tapToFocus";
@@ -82,6 +83,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   @Override
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
+    Log.d(TAG, "Called CameraPreview plugin with action : " + action);
     if (START_CAMERA_ACTION.equals(action)) {
       if (cordova.hasPermission(permissions[0])) {
         return startCamera(args.getInt(0), args.getInt(1), args.getInt(2), args.getInt(3), args.getString(4), args.getBoolean(5), args.getBoolean(6), args.getBoolean(7), args.getString(8), args.getBoolean(9), callbackContext);
@@ -92,6 +94,14 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
       }
     } else if (TAKE_PICTURE_ACTION.equals(action)) {
       return takePicture(args.getInt(0), args.getInt(1), args.getInt(2), callbackContext);
+    } else if (TAKE_PICTURE_TO_FILE_ACTION.equals(action)) {
+      return takePictureToFile(
+              args.getInt(0),
+              args.getInt(1),
+              args.getInt(2),
+              args.getString(3),
+              args.getInt(4),
+              callbackContext);
     } else if (COLOR_EFFECT_ACTION.equals(action)) {
       return setColorEffect(args.getString(0), callbackContext);
     } else if (ZOOM_ACTION.equals(action)) {
@@ -305,11 +315,34 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     return true;
   }
 
+  private boolean takePictureToFile(int width, int height, int quality, String targetFileName, int orientation, CallbackContext callbackContext) {
+    if(this.hasView(callbackContext) == false){
+      return true;
+    }
+
+    takePictureCallbackContext = callbackContext;
+    fragment.takePictureToFile(width, height, quality, targetFileName, orientation);
+    return true;
+  }
+
   public void onPictureTaken(String originalPicture) {
     Log.d(TAG, "returning picture");
 
     JSONArray data = new JSONArray();
     data.put(originalPicture);
+
+    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, data);
+    pluginResult.setKeepCallback(true);
+    takePictureCallbackContext.sendPluginResult(pluginResult);
+  }
+
+  @Override
+  public void onPictureTakenToFile(String pathToFile, String pathToThumbnail) {
+    Log.d(TAG, "Returning picture with path " + pathToFile );
+
+    JSONArray data = new JSONArray();
+    data.put(pathToFile);
+    data.put(pathToThumbnail);
 
     PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, data);
     pluginResult.setKeepCallback(true);
@@ -322,7 +355,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   }
 
   private boolean setColorEffect(String effect, CallbackContext callbackContext) {
-    if(this.hasCamera(callbackContext) == false){
+    if(!this.hasCamera(callbackContext)){
       return true;
     }
 
