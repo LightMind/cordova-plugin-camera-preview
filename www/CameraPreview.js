@@ -1,3 +1,4 @@
+cordova.define("cordova-plugin-camera-preview.CameraPreview", function(require, exports, module) {
 var argscheck = require('cordova/argscheck'),
     utils = require('cordova/utils'),
     exec = require('cordova/exec');
@@ -58,6 +59,45 @@ CameraPreview.show = function(onSuccess, onError) {
     exec(onSuccess, onError, PLUGIN_NAME, "showCamera", []);
 };
 
+CameraPreview.takePictureToFile = function(opts, onSuccess, onError) {
+    if (!opts) {
+        opts = {};
+    } else if (isFunction(opts)) {
+        onSuccess = opts;
+        opts = {};
+    }
+
+    if (!isFunction(onSuccess)) {
+        return false;
+    }
+
+    opts.width = opts.width || 0;
+    opts.height = opts.height || 0;
+
+    if (!opts.quality || opts.quality > 100 || opts.quality < 0) {
+        opts.quality = 85;
+    }
+
+    var fileName = opts.fileName || "tempFile.jpg";
+
+    if(typeof opts.orientation == "undefined" || opts.orientation == null){
+        opts.orientation = 0;
+    }
+
+    exec(
+        onSuccess,
+        onError,
+        PLUGIN_NAME,
+        "takePictureToFile",
+        [
+            opts.width,
+            opts.height,
+            opts.quality,
+            fileName,
+            opts.orientation,
+        ]);
+};
+
 CameraPreview.takePicture = function(opts, onSuccess, onError) {
     if (!opts) {
         opts = {};
@@ -75,6 +115,10 @@ CameraPreview.takePicture = function(opts, onSuccess, onError) {
 
     if (!opts.quality || opts.quality > 100 || opts.quality < 0) {
         opts.quality = 85;
+    }
+
+    if(typeof opts.orientation == "undefined" || opts.orientation == null){
+        opts.orientation = 0;
     }
 
     exec(onSuccess, onError, PLUGIN_NAME, "takePicture", [opts.width, opts.height, opts.quality]);
@@ -230,3 +274,5 @@ CameraPreview.CAMERA_DIRECTION = {
 };
 
 module.exports = CameraPreview;
+
+});
