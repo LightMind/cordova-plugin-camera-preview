@@ -27,6 +27,7 @@
 - (void) setPreviewSize: (CDVInvokedUrlCommand*)command;
 - (void) switchCamera:(CDVInvokedUrlCommand*)command;
 - (void) takePicture:(CDVInvokedUrlCommand*)command;
+- (void) takePictureToFile:(CDVInvokedUrlCommand*)command;
 - (void) setColorEffect:(CDVInvokedUrlCommand*)command;
 - (void) getSupportedPictureSizes:(CDVInvokedUrlCommand*)command;
 - (void) getSupportedFlashModes:(CDVInvokedUrlCommand*)command;
@@ -39,6 +40,9 @@
 - (void) setCameraParameterResolution:(CDVInvokedUrlCommand*)command;
 
 - (void) invokeTakePicture:(CGFloat) width withHeight:(CGFloat) height withQuality:(CGFloat) quality;
+
+- (void) invokeTakePicture:(CGFloat) width withHeight:(CGFloat) height withQuality:(CGFloat) quality withFileName:(NSString *) fileName rotateDegrees:(double) rotation;
+
 - (void) invokeTakePicture;
 
 - (void) invokeTapToFocus:(CGPoint) point;
