@@ -831,13 +831,37 @@
         } else {
             NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
             UIImage *capturedImage  = [[UIImage alloc] initWithData:imageData];
-            CIImage *capturedCImage = [self resizeImage:capturedImage toWidth:width toHeight:height];
             
+            CGFloat heightInPoints = capturedImage.size.height;
+            CGFloat heightInPixels = heightInPoints * capturedImage.scale;
+            
+            CGFloat widthInPoints = capturedImage.size.width;
+            CGFloat widthInPixels = widthInPoints * capturedImage.scale;
+            
+            CGFloat imageAspectRatio = widthInPixels / heightInPixels;
+            CGFloat requestedAspectRatio = width / height;
+            
+            // we need to switch width and height if aspect ratios do not match
+            CGFloat useWidth;
+            CGFloat useHeight;
+            if((imageAspectRatio < 1 && requestedAspectRatio < 1) ||
+               (imageAspectRatio > 1 && requestedAspectRatio > 1)) {
+                // aspect ratios match
+                useHeight = height;
+                useWidth = width;
+            } else {
+                // aspect ratios are switched around.
+                useHeight = width;
+                useWidth = height;
+            }
+            
+            CIImage *capturedCImage = [self resizeImage:capturedImage toWidth:useWidth toHeight:useHeight];
+ 
             CIImage *imageToFilter = [self fixFrontCameraMirror:capturedCImage forCamera:self.sessionManager.defaultCamera];
             CIImage *finalCImage = [self filterImage:imageToFilter];
             CGImageRef resultFinalImage = [self rotateImage:finalCImage withDegrees: rotation];
 
-            CIImage *capturedCImageThumbnail = [self resizeImage:capturedCImage fromWidth:width fromHeight:height toWidth:200 toHeight:200];
+            CIImage *capturedCImageThumbnail = [self resizeImage:capturedCImage fromWidth:useWidth fromHeight:useHeight toWidth:200 toHeight:200];
             CIImage *imageToFilterThumbnail = [self fixFrontCameraMirror:capturedCImageThumbnail forCamera:self.sessionManager.defaultCamera];
             CIImage *finalCImageThumbnail = [self filterImage:imageToFilterThumbnail];
             CGImageRef resultFinalImageThumbnail = [self rotateImage:finalCImageThumbnail withDegrees: rotation];
