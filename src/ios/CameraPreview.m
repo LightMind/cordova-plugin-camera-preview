@@ -819,16 +819,21 @@
              rotateDegrees:(double) rotation
             withCallbackId:(NSString *) callbackId {
     NSString * thumbnailFileName = [@"thumb-" stringByAppendingString:fileName];
-
+    
+    CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
+    
     AVCaptureConnection *connection = [self.sessionManager.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
     [self.sessionManager.stillImageOutput captureStillImageAsynchronouslyFromConnection:(connection) completionHandler:^(CMSampleBufferRef sampleBuffer, NSError *error) {
-
+        
         if (error) {
             CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error after calling captureStillImage."];
             [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
             NSLog(@"%@", error);
             return;
         } else {
+            
+            CFAbsoluteTime dataCaptured = CFAbsoluteTimeGetCurrent();
+            
             NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
             UIImage *capturedImage  = [[UIImage alloc] initWithData:imageData];
             
@@ -856,41 +861,49 @@
             }
             
             CIImage *capturedCImage = [self resizeImage:capturedImage toWidth:useWidth toHeight:useHeight];
- 
+            
             CIImage *imageToFilter = [self fixFrontCameraMirror:capturedCImage forCamera:self.sessionManager.defaultCamera];
             CIImage *finalCImage = [self filterImage:imageToFilter];
             CGImageRef resultFinalImage = [self rotateImage:finalCImage withDegrees: rotation];
-
+            
             CIImage *capturedCImageThumbnail = [self resizeImage:capturedCImage fromWidth:useWidth fromHeight:useHeight toWidth:200 toHeight:200];
             CIImage *imageToFilterThumbnail = [self fixFrontCameraMirror:capturedCImageThumbnail forCamera:self.sessionManager.defaultCamera];
             CIImage *finalCImageThumbnail = [self filterImage:imageToFilterThumbnail];
             CGImageRef resultFinalImageThumbnail = [self rotateImage:finalCImageThumbnail withDegrees: rotation];
-
+            
             NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
             NSString* rootPath = paths[0];
             NSString* path = [rootPath stringByAppendingPathComponent:@"NoCloud"];
-
+            
             NSString* fullPath = [path stringByAppendingFormat: @"/%@", fileName];
             NSString * thumbPath = [path stringByAppendingFormat: @"/%@", thumbnailFileName];
             NSLog(@"%@", path);
             NSLog(@"%@", thumbPath);
-
+            
+            CFAbsoluteTime imagesRotated = CFAbsoluteTimeGetCurrent();
+            
             NSError *writeError = nil;
-
+            
             UIImage * finalUIImage = [[UIImage alloc] initWithCGImage:resultFinalImage];
             NSData * jpegData = [NSData dataWithData:UIImageJPEGRepresentation(finalUIImage, quality)];
             [jpegData writeToFile:fullPath options:NSDataWritingAtomic error:&writeError];
             CGImageRelease(resultFinalImage); // release CGImageRef to remove memory leaks
-
+            
             UIImage * finalUIImageThumbnail = [[UIImage alloc] initWithCGImage:resultFinalImageThumbnail];
             NSData * jpegDataThumbnail = [NSData dataWithData:UIImageJPEGRepresentation(finalUIImageThumbnail, quality)];
             [jpegDataThumbnail writeToFile:thumbPath options:NSDataWritingAtomic error:&writeError];
             CGImageRelease(resultFinalImageThumbnail); // release CGImageRef to remove memory leaks
-
+            
+            CFAbsoluteTime imagesWrittenToDisk = CFAbsoluteTimeGetCurrent();
+            
             NSMutableArray *params = [[NSMutableArray alloc] init];
             [params addObject:fileName];
             [params addObject:thumbnailFileName];
-
+            [params addObject:@(start)];
+            [params addObject:@(dataCaptured)];
+            [params addObject:@(imagesRotated)];
+            [params addObject:@(imagesWrittenToDisk)];
+            
             if(writeError){
                 CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error while writing files."];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
