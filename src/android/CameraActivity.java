@@ -38,9 +38,11 @@ import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.hardware.Camera.CameraInfo;
+import android.media.ExifInterface;
 
 import org.apache.cordova.LOG;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -399,6 +401,17 @@ public class CameraActivity extends Fragment {
     return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
   }
 
+  public static Bitmap applyMatrix(Bitmap source, Matrix matrix) {
+      return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+  }
+
+  private static int exifToDegrees(int exifOrientation) {
+      if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) { return 90; }
+      else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {  return 180; }
+      else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {  return 270; }
+      return 0;
+  }
+
   ShutterCallback shutterCallback = new ShutterCallback() {
     public void onShutter() {
       // do nothing, availabilty of this callback causes default system shutter sound to work
@@ -562,6 +575,7 @@ public class CameraActivity extends Fragment {
     currentQuality = quality;
 
     int limitTo360Degrees = (orientation + mPreview.getCorrectedOrientation() + 360) % 360;
+    Log.d("Preview", "Setting camera rotation to " + limitTo360Degrees);
     params.setRotation(limitTo360Degrees);
 
     mCamera.setParameters(params);
@@ -577,11 +591,23 @@ public class CameraActivity extends Fragment {
           @Override
           protected Void doInBackground(Void... voids) {
             try {
+              Matrix matrix = new Matrix();
+
+              ExifInterface exifInterface = new ExifInterface(new ByteArrayInputStream(data));
+              int rotation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+              int rotationInDegrees = exifToDegrees(rotation);
+
+              if (rotation != 0f) {
+                matrix.preRotate(rotationInDegrees);
+              }
+
               FileOutputStream outputStream = null;
               outputStream = context.openFileOutput(targetFileName, Context.MODE_PRIVATE);
 
               File outputFile = context.getFileStreamPath(targetFileName);
               Bitmap outputData = BitmapFactory.decodeByteArray(data, 0, data.length);
+              outputData = applyMatrix(outputData, matrix);
+
               outputData.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
 
               Rect scaledRect = RectMathUtil.contain(outputData.getWidth(), outputData.getHeight(), 200, 200);
@@ -596,7 +622,11 @@ public class CameraActivity extends Fragment {
               scaledDown.compress(CompressFormat.JPEG, Math.max(quality - 20, 20), thumbOutputStream);
 
               eventListener.onPictureTakenToFile(outputFile.getName(), thumbOutputFile.getName());
-            } catch (Exception e) {
+            } catch (IOException e) {
+              Log.d(TAG, "CameraPreview IOException");
+              eventListener.onPictureTakenError("IO Error when extracting exif");
+            }
+            catch (Exception e) {
               e.printStackTrace();
               eventListener.onPictureTakenError("Failed to write files to disk");
             }
