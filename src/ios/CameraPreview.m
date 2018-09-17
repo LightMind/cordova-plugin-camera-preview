@@ -903,6 +903,11 @@
             [params addObject:@(dataCaptured)];
             [params addObject:@(imagesRotated)];
             [params addObject:@(imagesWrittenToDisk)];
+
+            [params addObject:@(widthInPoints)];
+            [params addObject:@(heightInPoints)];
+            [params addObject:@(widthInPixels)];
+            [params addObject:@(heightInPixels)];
             
             if(writeError){
                 CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Error while writing files."];
