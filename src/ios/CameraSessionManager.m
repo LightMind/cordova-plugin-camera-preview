@@ -8,9 +8,19 @@
     // Create the AVCaptureSession
     self.session = [[AVCaptureSession alloc] init];
     self.sessionQueue = dispatch_queue_create("session queue", DISPATCH_QUEUE_SERIAL);
-    if ([self.session canSetSessionPreset:AVCaptureSessionPresetPhoto]) {
+
+    if ([self.session canSetSessionPreset:AVCaptureSessionPreset1920x1080]) {
+      [self.session setSessionPreset:AVCaptureSessionPreset1920x1080];
+    }
+
+    else if ([self.session canSetSessionPreset:AVCaptureSessionPreset1280x720]) {
+      [self.session setSessionPreset:AVCaptureSessionPreset1280x720];
+    }
+
+    else if ([self.session canSetSessionPreset:AVCaptureSessionPresetPhoto]) {
       [self.session setSessionPreset:AVCaptureSessionPresetPhoto];
     }
+    
     self.filterLock = [[NSLock alloc] init];
 
     TemperatureAndTint * wbIncandescent = [[TemperatureAndTint alloc] init];
