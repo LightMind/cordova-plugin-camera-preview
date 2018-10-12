@@ -39,7 +39,7 @@ import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.hardware.Camera.CameraInfo;
 
-android.support.media.ExifInterface
+import android.support.media.ExifInterface;
 
 import org.apache.cordova.LOG;
 
