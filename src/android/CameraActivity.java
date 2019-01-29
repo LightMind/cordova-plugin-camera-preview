@@ -462,6 +462,8 @@ public class CameraActivity extends Fragment {
     */
     Camera.Size size = mCamera.new Size(width, height);
 
+    Log.d(TAG, "CameraPreview requested " + size.width + 'x' + size.height);
+
     // convert to landscape if necessary
     if (size.width < size.height) {
       int temp = size.width;
@@ -484,8 +486,9 @@ public class CameraActivity extends Fragment {
     for (int i = 0; i < supportedSizes.size(); i++) {
       Camera.Size supportedSize = supportedSizes.get(i);
 
+      Log.d(TAG, "CameraPreview test " + supportedSize.width + "x" + supportedSize.height + (supportedSize.width == width) );
       // Perfect match
-      if (supportedSize.equals(size)) {
+      if (supportedSize.width == width && supportedSize.height == height) {
         Log.d(TAG, "CameraPreview optimalPictureSize " + supportedSize.width + 'x' + supportedSize.height);
         return supportedSize;
       }
