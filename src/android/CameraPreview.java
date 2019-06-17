@@ -789,6 +789,12 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 
     List<String> supportedFlashModes;
     supportedFlashModes = camera.getParameters().getSupportedFlashModes();
+
+    if(supportedFlashModes == null){
+      callbackContext.success(flashMode);
+      return true;
+    }
+
     if (supportedFlashModes.indexOf(flashMode) > -1) {
       params.setFlashMode(flashMode);
     } else {
