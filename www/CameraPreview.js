@@ -151,6 +151,10 @@ CameraPreview.getSupportedPictureSizes = function(onSuccess, onError) {
     exec(onSuccess, onError, PLUGIN_NAME, "getSupportedPictureSizes", []);
 };
 
+CameraPreview.getSupportedPreviewSizes = function(onSucces, onError) {
+  exec(onSucces, onError, PLUGIN_NAME, "getSupportedPreviewSizes", []);
+};
+
 CameraPreview.getSupportedFlashModes = function(onSuccess, onError) {
     exec(onSuccess, onError, PLUGIN_NAME, "getSupportedFlashModes", []);
 };

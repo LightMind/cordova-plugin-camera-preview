@@ -43,6 +43,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   private static final String HIDE_CAMERA_ACTION = "hideCamera";
   private static final String TAP_TO_FOCUS = "tapToFocus";
   private static final String SUPPORTED_PICTURE_SIZES_ACTION = "getSupportedPictureSizes";
+  private static final String SUPPORTED_PREVIEW_SIZES_ACTION = "getSupportedPreviewSizes";
   private static final String SUPPORTED_FOCUS_MODES_ACTION = "getSupportedFocusModes";
   private static final String SUPPORTED_WHITE_BALANCE_MODES_ACTION = "getSupportedWhiteBalanceModes";
   private static final String GET_FOCUS_MODE_ACTION = "getFocusMode";
@@ -130,6 +131,8 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
       return switchCamera(callbackContext);
     } else if (SUPPORTED_PICTURE_SIZES_ACTION.equals(action)) {
       return getSupportedPictureSizes(callbackContext);
+    } else if (SUPPORTED_PREVIEW_SIZES_ACTION.equals(action)) {
+      return getSupportedPreviewSizes(callbackContext);
     } else if (GET_EXPOSURE_MODES_ACTION.equals(action)) {
       return getExposureModes(callbackContext);
     } else if (SUPPORTED_FOCUS_MODES_ACTION.equals(action)) {
@@ -194,6 +197,37 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
       return false;
     }
 
+    return true;
+  }
+
+  private boolean getSupportedPreviewSizes(CallbackContext callbackContext){
+    if(this.hasCamera(callbackContext) == false){
+      return true;
+    }
+
+    List<Camera.Size> supportedSizes;
+    Camera camera = fragment.getCamera();
+    supportedSizes = camera.getParameters().getSupportedPreviewSizes();
+    if (supportedSizes != null) {
+      JSONArray sizes = new JSONArray();
+      for (int i=0; i<supportedSizes.size(); i++) {
+        Camera.Size size = supportedSizes.get(i);
+        int h = size.height;
+        int w = size.width;
+        JSONObject jsonSize = new JSONObject();
+        try {
+          jsonSize.put("height", new Integer(h));
+          jsonSize.put("width", new Integer(w));
+        }
+        catch(JSONException e){
+          e.printStackTrace();
+        }
+        sizes.put(jsonSize);
+      }
+      callbackContext.success(sizes);
+      return true;
+    }
+    callbackContext.error("Camera Parameters access error");
     return true;
   }
 
