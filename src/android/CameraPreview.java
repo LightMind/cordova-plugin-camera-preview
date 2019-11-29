@@ -333,7 +333,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     Log.d(TAG, "Camera started");
 
     PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "Camera started");
-    pluginResult.setKeepCallback(true);
+    // pluginResult.setKeepCallback(true);
     startCameraCallbackContext.sendPluginResult(pluginResult);
   }
 
@@ -366,7 +366,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     data.put(originalPicture);
 
     PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, data);
-    pluginResult.setKeepCallback(true);
+    // pluginResult.setKeepCallback(true);
     takePictureCallbackContext.sendPluginResult(pluginResult);
   }
 
@@ -379,7 +379,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     data.put(pathToThumbnail);
 
     PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, data);
-    pluginResult.setKeepCallback(true);
+    // pluginResult.setKeepCallback(true);
     takePictureCallbackContext.sendPluginResult(pluginResult);
   }
 
@@ -929,7 +929,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     }
 
     PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, data);
-    pluginResult.setKeepCallback(true);
+    // pluginResult.setKeepCallback(true);
     setFocusCallbackContext.sendPluginResult(pluginResult);
   }
 

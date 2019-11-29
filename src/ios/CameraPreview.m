@@ -915,7 +915,7 @@
                 NSLog(@"%@", error);
             } else {
                 CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:params];
-                [pluginResult setKeepCallbackAsBool:true];
+                // [pluginResult setKeepCallbackAsBool:true];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId: callbackId];
             }
         }
@@ -948,7 +948,7 @@
         [params addObject:base64Image];
 
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:params];
-        [pluginResult setKeepCallbackAsBool:true];
+        // [pluginResult setKeepCallbackAsBool:true];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.onPictureTakenHandlerId];
       }
     }];
